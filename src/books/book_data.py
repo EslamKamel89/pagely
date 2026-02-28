@@ -1,10 +1,12 @@
-from src.books.schemas import Book
+import uuid
 
-books: list[Book] = [
-    Book(**book)
+from src.books.schemas import BookBase
+
+books: list[BookBase] = [
+    BookBase(**book)
     for book in [
         {
-            "id": 1,
+            "uid": uuid.uuid4(),
             "title": "Think Python",
             "author": "Allen B. Downey",
             "publisher": "O'Reilly Media",
@@ -13,7 +15,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 2,
+            "uid": uuid.uuid4(),
             "title": "Clean Code",
             "author": "Robert C. Martin",
             "publisher": "Prentice Hall",
@@ -22,7 +24,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 3,
+            "uid": uuid.uuid4(),
             "title": "The Pragmatic Programmer",
             "author": "Andrew Hunt",
             "publisher": "Addison-Wesley",
@@ -31,7 +33,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 4,
+            "uid": uuid.uuid4(),
             "title": "Design Patterns",
             "author": "Erich Gamma",
             "publisher": "Addison-Wesley",
@@ -40,7 +42,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 5,
+            "uid": uuid.uuid4(),
             "title": "Refactoring",
             "author": "Martin Fowler",
             "publisher": "Addison-Wesley",
@@ -49,7 +51,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 6,
+            "uid": uuid.uuid4(),
             "title": "Deep Work",
             "author": "Cal Newport",
             "publisher": "Grand Central Publishing",
@@ -58,7 +60,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 7,
+            "uid": uuid.uuid4(),
             "title": "Atomic Habits",
             "author": "James Clear",
             "publisher": "Avery",
@@ -67,7 +69,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 8,
+            "uid": uuid.uuid4(),
             "title": "The Lean Startup",
             "author": "Eric Ries",
             "publisher": "Crown Business",
@@ -76,7 +78,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 9,
+            "uid": uuid.uuid4(),
             "title": "Zero to One",
             "author": "Peter Thiel",
             "publisher": "Crown Business",
@@ -85,7 +87,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 10,
+            "uid": uuid.uuid4(),
             "title": "You Don't Know JS Yet",
             "author": "Kyle Simpson",
             "publisher": "Independently Published",
@@ -94,7 +96,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 11,
+            "uid": uuid.uuid4(),
             "title": "Eloquent JavaScript",
             "author": "Marijn Haverbeke",
             "publisher": "No Starch Press",
@@ -103,7 +105,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 12,
+            "uid": uuid.uuid4(),
             "title": "Introduction to Algorithms",
             "author": "Thomas H. Cormen",
             "publisher": "MIT Press",
@@ -112,7 +114,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 13,
+            "uid": uuid.uuid4(),
             "title": "Cracking the Coding Interview",
             "author": "Gayle Laakmann McDowell",
             "publisher": "CareerCup",
@@ -121,7 +123,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 14,
+            "uid": uuid.uuid4(),
             "title": "The Clean Coder",
             "author": "Robert C. Martin",
             "publisher": "Prentice Hall",
@@ -130,7 +132,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 15,
+            "uid": uuid.uuid4(),
             "title": "Domain-Driven Design",
             "author": "Eric Evans",
             "publisher": "Addison-Wesley",
@@ -139,7 +141,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 16,
+            "uid": uuid.uuid4(),
             "title": "Working Effectively with Legacy Code",
             "author": "Michael Feathers",
             "publisher": "Prentice Hall",
@@ -148,7 +150,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 17,
+            "uid": uuid.uuid4(),
             "title": "Soft Skills",
             "author": "John Sonmez",
             "publisher": "Manning Publications",
@@ -157,7 +159,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 18,
+            "uid": uuid.uuid4(),
             "title": "Code Complete",
             "author": "Steve McConnell",
             "publisher": "Microsoft Press",
@@ -166,7 +168,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 19,
+            "uid": uuid.uuid4(),
             "title": "The Mythical Man-Month",
             "author": "Frederick P. Brooks Jr.",
             "publisher": "Addison-Wesley",
@@ -175,7 +177,7 @@ books: list[Book] = [
             "language": "English",
         },
         {
-            "id": 20,
+            "uid": uuid.uuid4(),
             "title": "Head First Design Patterns",
             "author": "Eric Freeman",
             "publisher": "O'Reilly Media",
