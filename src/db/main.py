@@ -33,9 +33,9 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db():
     async with engine.begin() as conn:
+        print("Database connection test:")
         statement = text("SELECT 'it works';")
         result = await conn.execute(statement)
-        print("Database connection test:")
         print(result.all())
         from src.books.models import Book
 
@@ -43,4 +43,4 @@ async def init_db():
 
 
 async def dispose_db():
-    await engine.dispose()
+    return await engine.dispose()
