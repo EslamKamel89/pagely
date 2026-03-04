@@ -6,8 +6,8 @@ from sqlalchemy import DateTime, func
 from sqlmodel import Column, Field
 
 
-class IdMixin:
-    uid: uuid.UUID = Field(
+def uid() -> uuid.UUID:
+    return Field(
         default_factory=uuid.uuid4,
         sa_column=Column(
             pg.UUID(as_uuid=True),
@@ -17,8 +17,8 @@ class IdMixin:
     )
 
 
-class DatetimeMixin:
-    created_at: datetime = Field(
+def created_at() -> datetime:
+    return Field(
         default=None,
         sa_column=Column(
             DateTime(timezone=True),
@@ -26,7 +26,10 @@ class DatetimeMixin:
             nullable=False,
         ),
     )
-    updated_at: datetime = Field(
+
+
+def updated_at() -> datetime:
+    return Field(
         default=None,
         sa_column=Column(
             DateTime(timezone=True),
