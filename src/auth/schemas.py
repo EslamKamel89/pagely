@@ -29,3 +29,12 @@ class UserUpdate(BaseModel):
     first_name: Optional[str] = Field(None, max_length=20)
     last_name: Optional[str] = Field(None, max_length=20)
     email: Optional[EmailStr] = None
+
+
+class CurrentUser(BaseModel):
+    uid: uuid.UUID
+
+
+class SigninData(BaseModel):
+    email: EmailStr
+    password: str = Field(max_length=255)
