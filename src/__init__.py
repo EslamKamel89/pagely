@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlmodel import SQLModel
 
-from src.books.router import book_router
+from src.auth.router import router as auth_router
+from src.books.router import router as book_router
 from src.db.main import dispose_db, init_db
 
 version = "v1"
@@ -39,3 +40,4 @@ async def health():
 
 
 app.include_router(book_router, prefix=f"/api/{version}/books")
+app.include_router(auth_router, prefix=f"/api/{version}/auth")

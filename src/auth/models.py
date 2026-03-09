@@ -4,12 +4,12 @@ from datetime import datetime
 from sqlalchemy import Boolean, String, text
 from sqlmodel import Column, Field, SQLModel
 
-from src.db.models_base import created_at, uid, updated_at
+import src.db.models_base as base
 
 
 class User(SQLModel, table=True):
     __tablename__ = "users"  # type: ignore
-    uid: uuid.UUID = uid()
+    uid: uuid.UUID = base.uid()
 
     username: str = Field(
         sa_column=Column(
@@ -24,7 +24,9 @@ class User(SQLModel, table=True):
     email: str = Field(
         sa_column=Column(String(255), unique=True, index=True, nullable=False)
     )
-    password_hash: str = Field(sa_column=Column(String(255), nullable=False))
+    password_hash: str = Field(
+        exclude=True, sa_column=Column(String(255), nullable=False)
+    )
     is_verified: bool = Field(
         default=False,
         sa_column=Column(
@@ -33,8 +35,8 @@ class User(SQLModel, table=True):
             server_default=text("false"),
         ),
     )
-    created_at: datetime = created_at()
-    updated_at: datetime = updated_at()
+    created_at: datetime = base.created_at()
+    updated_at: datetime = base.updated_at()
 
     def __str__(self) -> str:
         return f"{self.username} - {self.email}"
