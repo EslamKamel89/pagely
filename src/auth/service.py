@@ -15,8 +15,14 @@ class AuthService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_user(self, user_uuid: uuid.UUID) -> Optional[User]:
+    async def get_user_by_uuid(self, user_uuid: uuid.UUID) -> Optional[User]:
         stmt = select(User).where(User.uid == user_uuid)
+        res = await self.session.execute(stmt)
+        user = res.scalar_one_or_none()
+        return user
+
+    async def get_user_by_email(self, email: str) -> Optional[User]:
+        stmt = select(User).where(User.email == email)
         res = await self.session.execute(stmt)
         user = res.scalar_one_or_none()
         return user
