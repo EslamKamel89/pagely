@@ -8,10 +8,10 @@ from src.books.models import Book
 from src.books.schemas import BookBase, BookCreate, BookUpdate
 from src.books.service import BookService, get_book_service
 
-book_router = APIRouter(tags=["books"])
+router = APIRouter(tags=["books"])
 
 
-@book_router.post("/seed")
+@router.post("/seed")
 async def seed_books(service: BookService = Depends(get_book_service)) -> dict:
     existing = await service.get_all_books()
     await service.delete_all_books()
@@ -22,7 +22,7 @@ async def seed_books(service: BookService = Depends(get_book_service)) -> dict:
     }
 
 
-@book_router.get("/", response_model=list[BookBase])
+@router.get("/", response_model=list[BookBase])
 async def books_index(
     service: BookService = Depends(get_book_service),
 ) -> Sequence[Book]:
@@ -30,7 +30,7 @@ async def books_index(
     return books
 
 
-@book_router.post("/", response_model=BookBase)
+@router.post("/", response_model=BookBase)
 async def create_book(
     book_data: BookCreate,
     service: BookService = Depends(get_book_service),
@@ -39,7 +39,7 @@ async def create_book(
     return book
 
 
-@book_router.get("/{uid}", response_model=BookBase)
+@router.get("/{uid}", response_model=BookBase)
 async def get_book(
     uid: Annotated[uuid.UUID, Path()],
     service: BookService = Depends(get_book_service),
@@ -50,7 +50,7 @@ async def get_book(
     return book
 
 
-@book_router.patch("/{uid}", response_model=BookBase)
+@router.patch("/{uid}", response_model=BookBase)
 async def update_book(
     uid: Annotated[uuid.UUID, Path()],
     book_data: BookUpdate,
@@ -60,10 +60,10 @@ async def update_book(
     if book is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     book_updated = await service.update_book(book, book_data)
-    return book
+    return book_updated
 
 
-@book_router.delete("/{uid}")
+@router.delete("/{uid}")
 async def delete_book(
     uid: Annotated[uuid.UUID, Path()],
     service: BookService = Depends(get_book_service),
