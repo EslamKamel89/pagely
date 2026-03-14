@@ -38,3 +38,14 @@ class CurrentUser(BaseModel):
 class SigninData(BaseModel):
     email: EmailStr
     password: str = Field(max_length=255)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserBase
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

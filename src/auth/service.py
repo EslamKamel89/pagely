@@ -8,7 +8,6 @@ from sqlmodel import select
 from src.auth.models import User
 from src.auth.schemas import UserCreate
 from src.auth.utils import hash_password
-from src.db.main import get_session
 
 
 class AuthService:
@@ -23,6 +22,12 @@ class AuthService:
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         stmt = select(User).where(User.email == email)
+        res = await self.session.execute(stmt)
+        user = res.scalar_one_or_none()
+        return user
+
+    async def get_user_by_username(self, username: str) -> Optional[User]:
+        stmt = select(User).where(User.username == username)
         res = await self.session.execute(stmt)
         user = res.scalar_one_or_none()
         return user
@@ -52,7 +57,3 @@ class AuthService:
         await self.session.commit()
         await self.session.refresh(user)
         return user
-
-
-def get_auth_service(session: AsyncSession = Depends(get_session)) -> AuthService:
-    return AuthService(session)

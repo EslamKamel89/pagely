@@ -12,7 +12,6 @@ from src.auth.schemas import CurrentUser
 from src.config import settings
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 def hash_password(password: str) -> str:
@@ -55,27 +54,3 @@ def decode_token(token: str) -> dict[str, Any]:
     return jwt.decode(
         token, key=settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
     )
-
-
-async def get_current_user(token: str = Depends(oauth2_schema)) -> CurrentUser:
-    try:
-        payload = decode_token(token)
-    except jwt.PyJWTError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
-    user_id = payload.get("sub", None)
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
-        )
-    try:
-        user_uuid = uuid.UUID(user_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid user id in token",
-        )
-    return CurrentUser(uid=user_uuid)
