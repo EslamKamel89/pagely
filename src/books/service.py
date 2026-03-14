@@ -1,14 +1,12 @@
 import uuid
 from typing import Optional, Sequence
 
-from fastapi import Depends
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import desc, select
 
 from src.books.models import Book
 from src.books.schemas import BookCreate, BookUpdate
-from src.db.main import get_session
 
 
 class BookService:
@@ -47,7 +45,3 @@ class BookService:
     async def delete_all_books(self) -> None:
         await self.session.execute(delete(Book))
         await self.session.commit()
-
-
-def get_book_service(session: AsyncSession = Depends(get_session)):
-    return BookService(session)
