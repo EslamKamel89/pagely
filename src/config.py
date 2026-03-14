@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     ACCESS_EXPIRE_MINUTES: int
     REFRESH_EXPIRE_DAYS: int
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_DB: int
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

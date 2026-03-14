@@ -1,18 +1,15 @@
-import uuid
-
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from jwt import PyJWTError
 
-from src.auth.deps import get_auth_service, get_current_user
-from src.auth.models import User
-from src.auth.schemas import (
-    CurrentUser,
-    RefreshTokenRequest,
-    TokenResponse,
-    UserBase,
-    UserCreate,
+from src.auth.deps import (
+    get_auth_service,
+    get_current_user,
+    get_user_from_refresh_token,
+    oauth2_schema,
 )
+from src.auth.models import User
+from src.auth.schemas import RefreshTokenRequest, TokenResponse, UserBase, UserCreate
 from src.auth.service import AuthService
 from src.auth.utils import create_token, decode_token, verify_password
 
@@ -70,50 +67,15 @@ async def signin(
 
 
 @router.get("/me", response_model=UserBase)
-async def me(
-    current_user: CurrentUser = Depends(get_current_user),
-    service: AuthService = Depends(get_auth_service),
-):
-    user = await service.get_user_by_uuid(current_user.uid)
-    return user
+async def me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 @router.post("/refresh-token", response_model=TokenResponse)
 async def refresh_token(
     data: RefreshTokenRequest,
-    service: AuthService = Depends(get_auth_service),
+    user: User = Depends(get_user_from_refresh_token),
 ):
-    try:
-        payload = decode_token(data.refresh_token)
-    except PyJWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-        )
-    if payload.get("type") != "refresh":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid refresh token",
-        )
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid token payload",
-        )
-    try:
-        user_uuid = uuid.UUID(user_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid user id in token",
-        )
-    user: User | None = await service.get_user_by_uuid(user_uuid)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="user not found",
-        )
     access_token = create_token(user, refresh=False)
     return TokenResponse(
         refresh_token=data.refresh_token,
@@ -121,3 +83,31 @@ async def refresh_token(
         user=UserBase.model_validate(user),
         token_type="bearer",
     )
+
+
+@router.post("/logout")
+async def logout(
+    user: User = Depends(get_current_user),
+    token: str = Depends(oauth2_schema),
+    service: AuthService = Depends(get_auth_service),
+):
+
+    try:
+        payload = decode_token(token)
+    except jwt.PyJWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )
+    if payload.get("type") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token type",
+        )
+    jti = payload.get("jti")
+    if jti is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token payload"
+        )
+    await service.add_jti_to_blocklist(jti)
+    return {"message": "you Logged out successfully"}

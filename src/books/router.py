@@ -4,7 +4,7 @@ from typing import Annotated, Sequence
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from src.auth.deps import get_current_user
-from src.auth.schemas import CurrentUser
+from src.auth.models import User
 from src.books.book_data import books as dummy_books
 from src.books.deps import get_book_service
 from src.books.models import Book
@@ -17,7 +17,7 @@ router = APIRouter(tags=["books"])
 @router.post("/seed")
 async def seed_books(
     service: BookService = Depends(get_book_service),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     existing = await service.get_all_books()
     await service.delete_all_books()
@@ -31,7 +31,7 @@ async def seed_books(
 @router.get("/", response_model=list[BookBase])
 async def books_index(
     service: BookService = Depends(get_book_service),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> Sequence[Book]:
     books = await service.get_all_books()
     return books
@@ -41,7 +41,7 @@ async def books_index(
 async def create_book(
     book_data: BookCreate,
     service: BookService = Depends(get_book_service),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> Book:
     book = await service.create_book(book_data)
     return book
@@ -51,7 +51,7 @@ async def create_book(
 async def get_book(
     uid: Annotated[uuid.UUID, Path()],
     service: BookService = Depends(get_book_service),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> Book:
     book = await service.get_book(uid)
     if book is None:
@@ -64,7 +64,7 @@ async def update_book(
     uid: Annotated[uuid.UUID, Path()],
     book_data: BookUpdate,
     service: BookService = Depends(get_book_service),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> Book:
     book = await service.get_book(uid)
     if book is None:
@@ -77,7 +77,7 @@ async def update_book(
 async def delete_book(
     uid: Annotated[uuid.UUID, Path()],
     service: BookService = Depends(get_book_service),
-    current_user: CurrentUser = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     book = await service.get_book(uid)
     if book is None:
