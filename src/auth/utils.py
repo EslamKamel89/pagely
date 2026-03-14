@@ -8,7 +8,6 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
 from src.auth.models import User
-from src.auth.schemas import CurrentUser
 from src.config import settings
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")

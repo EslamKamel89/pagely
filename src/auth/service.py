@@ -8,6 +8,8 @@ from sqlmodel import select
 from src.auth.models import User
 from src.auth.schemas import UserCreate
 from src.auth.utils import hash_password
+from src.config import settings
+from src.db.redis import redis_client
 
 
 class AuthService:
@@ -57,3 +59,14 @@ class AuthService:
         await self.session.commit()
         await self.session.refresh(user)
         return user
+
+    async def add_jti_to_blocklist(self, jti: str) -> None:
+        await redis_client.set(
+            name=f"auth:blocklist:{jti}",
+            value=1,
+            ex=settings.ACCESS_EXPIRE_MINUTES * 60,
+        )
+
+    async def token_in_blocklist(self, jti: str) -> bool:
+        res = await redis_client.get(f"auth:blocklist:{jti}")
+        return res is not None

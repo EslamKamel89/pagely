@@ -31,10 +31,6 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
 
 
-class CurrentUser(BaseModel):
-    uid: uuid.UUID
-
-
 class SigninData(BaseModel):
     email: EmailStr
     password: str = Field(max_length=255)
