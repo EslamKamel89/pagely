@@ -1,19 +1,14 @@
 import uuid
-from datetime import datetime
-from typing import Optional
+from datetime import date, datetime
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
+from src.common.schemas import BookBase, UserBase
 
-class UserBase(BaseModel):
-    uid: uuid.UUID
-    username: str
-    first_name: str
-    last_name: str
-    email: EmailStr
-    created_at: datetime
-    updated_at: datetime
-    model_config = {"from_attributes": True}
+
+class UserWithBooks(UserBase):
+    books: list[BookBase]
 
 
 class UserCreate(BaseModel):

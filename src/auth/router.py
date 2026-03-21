@@ -1,6 +1,7 @@
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.deps import (
     get_auth_service,
@@ -9,9 +10,16 @@ from src.auth.deps import (
     oauth2_schema,
 )
 from src.auth.models import User
-from src.auth.schemas import RefreshTokenRequest, TokenResponse, UserBase, UserCreate
+from src.auth.schemas import (
+    RefreshTokenRequest,
+    TokenResponse,
+    UserBase,
+    UserCreate,
+    UserWithBooks,
+)
 from src.auth.service import AuthService
 from src.auth.utils import create_token, decode_token, verify_password
+from src.db.main import get_session
 
 router = APIRouter(tags=["auth"])
 
@@ -66,9 +74,12 @@ async def signin(
     )
 
 
-@router.get("/me", response_model=UserBase)
-async def me(current_user: User = Depends(get_current_user)):
-    return current_user
+@router.get("/me", response_model=UserWithBooks)
+async def me(
+    current_user: User = Depends(get_current_user),
+    service: AuthService = Depends(get_auth_service),
+):
+    return await service.get_user_with_books(current_user.uid)
 
 
 @router.post("/refresh-token", response_model=TokenResponse)

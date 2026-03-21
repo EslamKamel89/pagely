@@ -3,6 +3,7 @@ from typing import Optional
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from src.auth.models import User
@@ -21,6 +22,15 @@ class AuthService:
         res = await self.session.execute(stmt)
         user = res.scalar_one_or_none()
         return user
+
+    async def get_user_with_books(self, user_uuid: uuid.UUID) -> User:
+        stmt = (
+            select(User)
+            .options(selectinload(User.books))  # type: ignore
+            .where(User.uid == user_uuid)
+        )
+        res = await self.session.execute(stmt)
+        return res.scalar_one()
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         stmt = select(User).where(User.email == email)
