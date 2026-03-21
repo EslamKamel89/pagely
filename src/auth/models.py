@@ -1,10 +1,22 @@
+import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, String, text
-from sqlmodel import Column, Field, SQLModel
+from sqlalchemy import Boolean
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import String, text
+from sqlmodel import Column, Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from src.books.models import Book
 
 import src.db.models_base as base
+
+
+class Role(str, enum.Enum):
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(SQLModel, table=True):
@@ -35,8 +47,15 @@ class User(SQLModel, table=True):
             server_default=text("false"),
         ),
     )
+    role: Role = Field(
+        sa_column=Column(
+            SAEnum(Role),
+            default=Role.USER,
+        ),
+    )
     created_at: datetime = base.created_at()
     updated_at: datetime = base.updated_at()
+    books: list["Book"] = Relationship(back_populates="user")
 
     def __str__(self) -> str:
         return f"{self.username} - {self.email}"

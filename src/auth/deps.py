@@ -1,11 +1,12 @@
 import uuid
+from typing import Any, Sequence
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import User
+from src.auth.models import Role, User
 from src.auth.schemas import RefreshTokenRequest
 from src.auth.service import AuthService
 from src.auth.utils import decode_token
@@ -104,3 +105,23 @@ async def get_user_from_refresh_token(
             detail="user not found",
         )
     return user
+
+
+async def get_admin(user: User = Depends(get_current_user)):
+    if user.role != Role.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="You are not authorized"
+        )
+    return user
+
+
+class RequireRoles:
+    def __init__(self, roles: Sequence[Role]) -> None:
+        self.roles = roles
+
+    async def __call__(self, user: User = Depends(get_current_user)) -> User:
+        if user.role not in self.roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="You are not authorized"
+            )
+        return user
