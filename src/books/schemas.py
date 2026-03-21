@@ -1,20 +1,12 @@
-import uuid
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import BaseModel
 
+from src.common.schemas import BookBase, UserBase
 
-class BookBase(BaseModel):
-    uid: uuid.UUID
-    title: str
-    author: str
-    publisher: str
-    published_date: date
-    page_count: int
-    language: str
-    created_at: datetime
-    updated_at: datetime
-    model_config = {"from_attributes": True}
+
+class BookWithUser(BookBase):
+    user: UserBase
 
 
 class BookCreate(BaseModel):

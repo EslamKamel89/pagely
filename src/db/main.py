@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlmodel import SQLModel, text
+from sqlmodel import text
 
 from src.config import settings
 
@@ -37,9 +37,8 @@ async def init_db():
         statement = text("SELECT 'it works';")
         result = await conn.execute(statement)
         print(result.all())
-        from src.books.models import Book
-
-        await conn.run_sync(SQLModel.metadata.create_all)
+        # from src.books.models import Book
+        # await conn.run_sync(SQLModel.metadata.create_all)
 
 
 async def dispose_db():

@@ -3,6 +3,7 @@ from typing import Optional, Sequence
 
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlmodel import desc, select
 
 from src.books.models import Book
@@ -14,17 +15,19 @@ class BookService:
         self.session = session
 
     async def get_all_books(self) -> Sequence[Book]:
-        stmt = select(Book).order_by(desc(Book.created_at))
+        stmt = select(Book).options(selectinload(Book.user)).order_by(desc(Book.created_at))  # type: ignore
         res = await self.session.execute(stmt)
         return res.scalars().all()
 
     async def get_book(self, book_uuid: uuid.UUID) -> Optional[Book]:
-        stmt = select(Book).where(Book.uid == book_uuid)
+        stmt = select(Book).options(selectinload(Book.user)).where(Book.uid == book_uuid)  # type: ignore
         res = await self.session.execute(stmt)
         return res.scalar_one_or_none()
 
-    async def create_book(self, book_data: BookCreate) -> Book:
-        book = Book(**book_data.model_dump())
+    async def create_book(self, book_data: BookCreate, user_uid: uuid.UUID) -> Book:
+        raw_data = book_data.model_dump()
+        raw_data["user_uid"] = user_uid
+        book = Book(**raw_data)
         self.session.add(book)
         await self.session.commit()
         await self.session.refresh(book)
