@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from src.auth.models import User
 
 import src.db.models_base as base
+from src.reviews.models import Review
 
 
 class Book(SQLModel, table=True):
@@ -23,6 +24,10 @@ class Book(SQLModel, table=True):
     updated_at: datetime = base.updated_at()
     user_uid: uuid.UUID = Field(foreign_key="users.uid")
     user: "User" = Relationship(back_populates="books")
+    reviewed_by: list["User"] = Relationship(
+        back_populates="reviewed_books", link_model=Review
+    )
+    reviews: list["Review"] = Relationship(back_populates="book")
 
     def __str__(self):
         return f"{self.title} by {self.author}"

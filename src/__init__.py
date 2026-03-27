@@ -6,6 +6,7 @@ from sqlmodel import SQLModel
 from src.auth.router import router as auth_router
 from src.books.router import router as book_router
 from src.db.main import dispose_db, init_db
+from src.reviews.router import router as reviews_router
 
 version = "v1"
 
@@ -41,3 +42,4 @@ async def health():
 
 app.include_router(book_router, prefix=f"/api/{version}/books")
 app.include_router(auth_router, prefix=f"/api/{version}/auth")
+app.include_router(reviews_router, prefix=f"/api/{version}/reviews")

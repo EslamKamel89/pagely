@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from src.books.models import Book
 
 import src.db.models_base as base
+from src.reviews.models import Review
 
 
 class Role(str, enum.Enum):
@@ -56,6 +57,10 @@ class User(SQLModel, table=True):
     created_at: datetime = base.created_at()
     updated_at: datetime = base.updated_at()
     books: list["Book"] = Relationship(back_populates="user")
+    reviewed_books: list["Book"] = Relationship(
+        back_populates="reviewed_by", link_model=Review
+    )
+    reviews: list["Review"] = Relationship(back_populates="user")
 
     def __str__(self) -> str:
         return f"{self.username} - {self.email}"
