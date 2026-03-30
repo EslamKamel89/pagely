@@ -26,3 +26,7 @@ class ReviewCreate(BaseModel):
 class ReviewUpdate(BaseModel):
     review_text: str | None = Field(min_length=2, default=None)
     rating: int | None = Field(ge=1, le=5, default=None)
+
+
+class Message(BaseModel):
+    message: str
