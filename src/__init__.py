@@ -1,14 +1,13 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from sqlmodel import SQLModel
+from fastapi import FastAPI
 
+from src import middleware
 from src.auth.router import router as auth_router
 from src.books.router import router as book_router
 from src.db.main import dispose_db, init_db
-from src.errors import AppError
+from src.errors import register_exception_handler
+from src.middleware import register_middleware
 from src.reviews.router import router as reviews_router
 
 version = "v1"
@@ -32,29 +31,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+register_middleware(app)
 
-@app.exception_handler(AppError)
-async def app_exception_handler(request: Request, exc: AppError):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail or "Something went wrong"},
-    )
+register_exception_handler(app)
 
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    errors = {}
-    for err in exc.errors():
-        field = err["loc"][-1]
-        message = err["msg"]
-        errors[field] = message
-    return JSONResponse(
-        status_code=422,
-        content={"detail": "Validation Failed", "errors": errors},
-    )
-
-
-@app.get("/")
+@app.get(
+    "/",
+)
 async def read_root():
     return {"message": "Welcome To Pagely App"}
 
