@@ -1,11 +1,14 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from sqlmodel import SQLModel
 
 from src.auth.router import router as auth_router
 from src.books.router import router as book_router
 from src.db.main import dispose_db, init_db
+from src.errors import AppError
 from src.reviews.router import router as reviews_router
 
 version = "v1"
@@ -28,6 +31,27 @@ app = FastAPI(
     version=version,
     lifespan=lifespan,
 )
+
+
+@app.exception_handler(AppError)
+async def app_exception_handler(request: Request, exc: AppError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail or "Something went wrong"},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = {}
+    for err in exc.errors():
+        field = err["loc"][-1]
+        message = err["msg"]
+        errors[field] = message
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "Validation Failed", "errors": errors},
+    )
 
 
 @app.get("/")
