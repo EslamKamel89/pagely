@@ -1,7 +1,9 @@
+import html
+
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.deps import (
     get_auth_service,
@@ -12,16 +14,28 @@ from src.auth.deps import (
 from src.auth.models import User
 from src.auth.schemas import (
     RefreshTokenRequest,
+    SendMailSchema,
     TokenResponse,
     UserBase,
     UserCreate,
     UserWithBooks,
 )
 from src.auth.service import AuthService
-from src.auth.utils import create_token, decode_token, verify_password
-from src.db.main import get_session
+from src.auth.utils import build_html_email, create_token, decode_token, verify_password
+from src.mail import create_message_schema, fm
 
 router = APIRouter(tags=["auth"])
+
+
+@router.post("/send-mail", status_code=status.HTTP_200_OK)
+async def send_mail(
+    data: SendMailSchema,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    await auth_service.send_mail(data)
+    return {
+        "message": "Test email sent",
+    }
 
 
 @router.post(
@@ -46,6 +60,21 @@ async def signup(
         )
 
     return res
+
+
+@router.get("/verify/{token}")
+async def verify_email(
+    token: str, auth_service: AuthService = Depends(get_auth_service)
+):
+    user = await auth_service.verify_email(token)
+    if user:
+        return HTMLResponse(
+            """
+            <h2>Email Verified ✅</h2>
+            <p>You can now return to the app.</p>
+            """
+        )
+    return HTMLResponse("Something went wrong")
 
 
 @router.post("/signin", response_model=TokenResponse)

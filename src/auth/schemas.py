@@ -40,3 +40,9 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+class SendMailSchema(BaseModel):
+    recipients: list[EmailStr]
+    subject: str
+    body: str

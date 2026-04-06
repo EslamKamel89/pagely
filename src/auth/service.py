@@ -2,15 +2,22 @@ import uuid
 from typing import Optional
 
 from fastapi import Depends
+from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from src.auth.models import User
-from src.auth.schemas import UserCreate
-from src.auth.utils import hash_password
+from src.auth.schemas import SendMailSchema, UserCreate
+from src.auth.utils import (
+    build_html_email,
+    create_url_safe_token,
+    decode_urlsafe_token,
+    hash_password,
+)
 from src.config import settings
 from src.db.redis import redis_client
+from src.mail import create_message_schema, fm
 
 
 class AuthService:
@@ -68,7 +75,36 @@ class AuthService:
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
+        token = create_url_safe_token({"uid": str(user.uid)})
+        link = f"{settings.APP_SCHEME}://{settings.DOMAIN}/api/v1/auth/verify/{token}"
+        html_content = f"""
+            <h1>Verify your email</h1>
+            <p> Please click this <a href="{link}">link</a> to verify your email </p>
+            """
+
+        await self.send_mail(
+            SendMailSchema(
+                recipients=[user.email],
+                body=html_content,
+                subject="Please verify your email",
+            )
+        )
         return user
+
+    async def verify_email(self, token: str) -> Optional[User]:
+        data = decode_urlsafe_token(token)
+        if data is not None:
+            uid = data.get("uid", None)
+            if uid:
+                user = await self.get_user_by_uuid(uuid.UUID(uid))
+                if user is not None:
+                    if user.is_verified:
+                        return user
+                    user.is_verified = True
+                    await self.session.commit()
+                    await self.session.refresh(user)
+                    return user
+        return None
 
     async def add_jti_to_blocklist(self, jti: str) -> None:
         await redis_client.set(
@@ -80,3 +116,12 @@ class AuthService:
     async def token_in_blocklist(self, jti: str) -> bool:
         res = await redis_client.get(f"auth:blocklist:{jti}")
         return res is not None
+
+    async def send_mail(self, data: SendMailSchema):
+        html_content = build_html_email(data.body)
+        message = create_message_schema(
+            recipients=data.recipients,
+            subject=data.subject,
+            body=html_content,
+        )
+        await fm.send_message(message)
