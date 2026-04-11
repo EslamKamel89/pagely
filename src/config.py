@@ -27,7 +27,13 @@ class Settings(BaseSettings):
     USE_CREDENTIALS: bool
     VALIDATE_CERTS: bool
     EMAIL_TOKEN_SALT: str
+    CELERY_BROKER_URL: str
+    CELERY_BACKEND_URL: str
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @property
+    def REDIS_URL(self):
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
 
 settings = Settings()  # type: ignore

@@ -1,7 +1,5 @@
-import html
-
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -21,18 +19,28 @@ from src.auth.schemas import (
     UserWithBooks,
 )
 from src.auth.service import AuthService
-from src.auth.utils import build_html_email, create_token, decode_token, verify_password
-from src.mail import create_message_schema, fm
+from src.auth.utils import (
+    build_html_email,
+    create_token,
+    create_url_safe_token,
+    decode_token,
+    verify_password,
+)
+from src.celery import send_mail
+from src.config import settings
 
 router = APIRouter(tags=["auth"])
 
 
 @router.post("/send-mail", status_code=status.HTTP_200_OK)
-async def send_mail(
+async def send_test_mail(
     data: SendMailSchema,
+    # background_tasks: BackgroundTasks,
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    await auth_service.send_mail(data)
+    # await auth_service.send_mail(data)
+    # background_tasks.add_task(auth_service.send_mail, data)
+    send_mail.delay(data.to_config_dict())  # type: ignore
     return {
         "message": "Test email sent",
     }
@@ -45,6 +53,7 @@ async def send_mail(
 )
 async def signup(
     user_data: UserCreate,
+    # background_tasks: BackgroundTasks,
     service: AuthService = Depends(get_auth_service),
 ) -> User:
     res = await service.create_user(user_data)
@@ -58,7 +67,27 @@ async def signup(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=", ".join(messages)
         )
-
+    token = create_url_safe_token({"uid": str(res.uid)})
+    link = f"{settings.APP_SCHEME}://{settings.DOMAIN}/api/v1/auth/verify/{token}"
+    html_content = f"""
+        <h1>Verify your email</h1>
+        <p> Please click this <a href="{link}">link</a> to verify your email </p>
+        """
+    # background_tasks.add_task(
+    #     service.send_mail,
+    #     SendMailSchema(
+    #         recipients=[res.email],
+    #         body=html_content,
+    #         subject="Please verify your email",
+    #     ),
+    # )
+    send_mail.delay(  # type: ignore
+        SendMailSchema(
+            recipients=[res.email],
+            body=html_content,
+            subject="Please verify your email",
+        ).to_config_dict(),
+    )
     return res
 
 

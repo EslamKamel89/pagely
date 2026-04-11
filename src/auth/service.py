@@ -1,20 +1,13 @@
 import uuid
 from typing import Optional
 
-from fastapi import Depends
-from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from src.auth.models import User
 from src.auth.schemas import SendMailSchema, UserCreate
-from src.auth.utils import (
-    build_html_email,
-    create_url_safe_token,
-    decode_urlsafe_token,
-    hash_password,
-)
+from src.auth.utils import build_html_email, decode_urlsafe_token, hash_password
 from src.config import settings
 from src.db.redis import redis_client
 from src.mail import create_message_schema, fm
@@ -75,20 +68,6 @@ class AuthService:
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
-        token = create_url_safe_token({"uid": str(user.uid)})
-        link = f"{settings.APP_SCHEME}://{settings.DOMAIN}/api/v1/auth/verify/{token}"
-        html_content = f"""
-            <h1>Verify your email</h1>
-            <p> Please click this <a href="{link}">link</a> to verify your email </p>
-            """
-
-        await self.send_mail(
-            SendMailSchema(
-                recipients=[user.email],
-                body=html_content,
-                subject="Please verify your email",
-            )
-        )
         return user
 
     async def verify_email(self, token: str) -> Optional[User]:
