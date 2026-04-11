@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, TypedDict
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -44,5 +44,18 @@ class RefreshTokenRequest(BaseModel):
 
 class SendMailSchema(BaseModel):
     recipients: list[EmailStr]
+    subject: str
+    body: str
+
+    def to_config_dict(self) -> "SendMailConfig":
+        return {
+            "recipients": self.recipients,
+            "subject": self.subject,
+            "body": self.body,
+        }
+
+
+class SendMailConfig(TypedDict):
+    recipients: list[str]
     subject: str
     body: str
