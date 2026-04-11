@@ -36,9 +36,7 @@ register_middleware(app)
 register_exception_handler(app)
 
 
-@app.get(
-    "/",
-)
+@app.get("/")
 async def read_root():
     return {"message": "Welcome To Pagely App"}
 

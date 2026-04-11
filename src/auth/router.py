@@ -64,7 +64,8 @@ async def signup(
 
 @router.get("/verify/{token}")
 async def verify_email(
-    token: str, auth_service: AuthService = Depends(get_auth_service)
+    token: str,
+    auth_service: AuthService = Depends(get_auth_service),
 ):
     user = await auth_service.verify_email(token)
     if user:
